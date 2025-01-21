@@ -95,6 +95,15 @@ func doOneSoakIteration(ctx context.Context, config SoakIterationConfig) (latenc
 func executeSoakTestInWorker(ctx context.Context, config SoakTestConfig, startTime time.Time, workerID int, soakWorkerResults *SoakWorkerResults) {
 	timeoutDuration := config.OverallTimeout
 	soakIterationsPerWorker := config.Iterations / config.NumWorkers
+	if soakWorkerResults.Latencies == nil {
+		soakWorkerResults.Latencies = stats.NewHistogram(stats.HistogramOptions{
+			NumBuckets:     20,
+			GrowthFactor:   1,
+			BaseBucketSize: 1,
+			MinValue:       0,
+		})
+	}
+
 	for i := 0; i < soakIterationsPerWorker; i++ {
 		if ctx.Err() != nil {
 			return
